@@ -25,38 +25,59 @@ def clean_url(url): # removing all url parameters so that each book should be un
 
 
 @api_view(["POST"])
-def upload_book(request): # uploading new book to db using www.goodreads.com url
-
+def upload_book(request):
     url = request.data.get("url")
+
     if not url:
+        return Response({"error": "URL is required"}, status=400)
 
-        return Response({"error":"URL is required"},status=400)
+    url = clean_url(url)
 
-    url  = clean_url(url)
+    # ✅ Check if already exists
     existing_book = Book.objects.filter(book_url=url).first()
-
     if existing_book:
         return Response({
             "message": "Book already exists",
             "book_id": existing_book.id
         }, status=200)
 
-    data = scrape_book(url)
-    if not data["title"] or "403" in data["title"]:
-        return Response({"error": "Scraping failed"}, status=500)
+    # ✅ Scrape book
+    try:
+        data = scrape_book(url)
+    except Exception as e:
+        return Response({"error": f"Scraping failed: {str(e)}"}, status=500)
 
-    book = Book.objects.create(title=data["title"],
-        author=data["author"],
-        rating=float(data["rating"]) if data["rating"] else None,
-        description=data["description"],
-        image_url=data["image_url"],
-        book_url=url)
-    store_book_embeddings(book)
+    if not data or not data.get("title"):
+        return Response({"error": "Failed to fetch book data"}, status=500)
+
+    # ✅ Safe rating conversion
+    rating = None
+    if data.get("rating"):
+        try:
+            rating = float(data["rating"])
+        except ValueError:
+            rating = None
+
+    # ✅ Save book
+    book = Book.objects.create(
+        title=data.get("title"),
+        author=data.get("author"),
+        rating=rating,
+        description=data.get("description"),
+        image_url=data.get("image_url"),
+        book_url=url
+    )
+
+    # ✅ Store embeddings (can move to background later)
+    try:
+        store_book_embeddings(book)
+    except Exception as e:
+        print("Embedding error:", e)
+
     return Response({
         "message": "Book added successfully",
         "book_id": book.id
-    })
-
+    }, status=201)
 @api_view(['POST'])
 def ask_question(request):
     question = request.data.get("question")

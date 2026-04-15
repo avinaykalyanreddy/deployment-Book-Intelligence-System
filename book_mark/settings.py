@@ -28,7 +28,7 @@ DEBUG = True
 ALLOWED_HOSTS = ["*"]
 CORS_ALLOW_ALL_ORIGINS = True
 
-
+REQUEST_TIMEOUT = 10
 # Application definition
 
 INSTALLED_APPS = [

@@ -59,7 +59,7 @@ export default function Dashboard() {
           <div className="flex flex-col sm:flex-row gap-3">
             <input
               className="flex-1 border rounded-lg p-2 focus:ring-2 focus:ring-blue-400 outline-none"
-              placeholder="Paste book URL..."
+              placeholder="Paste book URL from www.goodreads.com..."
               value={url}
               onChange={(e) => setUrl(e.target.value)}
             />

@@ -12,20 +12,20 @@ from django.db.models import Case, When
 
 
 @api_view(['GET'])
-def get_books(request):
+def get_books(request): # this view used for retrieving all books from db
 
     books = Book.objects.all()
     serializer = BookSerializer(books,many=True)
     print(type(serializer.data))
     return Response(serializer.data)
 
-def clean_url(url):
+def clean_url(url): # removing all url parameters so that each book should be unique
     return url.split("?")[0] if url else url
 
 
 
 @api_view(["POST"])
-def upload_book(request):
+def upload_book(request): # uploading new book to db using www.goodreads.com url
 
     url = request.data.get("url")
     if not url:
@@ -58,7 +58,7 @@ def upload_book(request):
     })
 
 @api_view(['POST'])
-def ask_question(request):
+def ask_question(request): # user asks question on book it generates it response
     question = request.data.get("question")
     book_id = request.data.get("book_id")
 

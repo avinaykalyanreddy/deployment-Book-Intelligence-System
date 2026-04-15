@@ -1,7 +1,9 @@
+import os
+
 from sentence_transformers import SentenceTransformer
 import chromadb
 import google.generativeai as genai
-genai.configure(api_key="AIzaSyAkreKsYfCTvbVb3SsSDucJghlB8XUyPVo")
+genai.configure(api_key=os.getenv("API"))
 
 model = SentenceTransformer("all-MiniLM-L6-v2")
 
@@ -9,7 +11,7 @@ client = chromadb.PersistentClient(path="./chroma_db")
 
 collection = client.get_or_create_collection("books")
 
-def chunk_text(text, size=200, overlap=50):
+def chunk_text(text, size=200, overlap=50): # long text break down into chunks
     words = text.split()
     chunks = []
     step = size - overlap
@@ -20,7 +22,7 @@ def chunk_text(text, size=200, overlap=50):
 
     return chunks
 
-def store_book_embeddings(book):
+def store_book_embeddings(book): # embedding into chromedb
     chunks = chunk_text(book.description)
 
     for i, chunk in enumerate(chunks):
@@ -44,7 +46,7 @@ def retrieve_chunks(question, book_id):
     )
 
     return results
-def generate_answer(question, context):
+def generate_answer(question, context): # i used google gemini for response based on user question
     models = ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-flash-latest", "gemini-2.5-flash-lite",
               "gemini-pro-latest", "gemini-2.0-flash",
               "gemini-2.0-flash-001", "gemini-2.0-flash-lite", "gemini-2.0-flash-lite-001",
